@@ -20,10 +20,12 @@ app.use(cors(corsOptions));
 
 const io = new Server(server, {
     cors: {
-        origin: ['http://localhost:3000', 'https://web-socket-three.vercel.app/'],
-        methods: ['GET', 'POST']
-    }
-})
+        origin: ['http://localhost:3000', 'https://web-socket-three.vercel.app'],
+        methods: ['GET', 'POST'],
+        credentials: true
+    },
+    transports: ['websocket']
+});
 
 const users = new Map<string, string>()
 
