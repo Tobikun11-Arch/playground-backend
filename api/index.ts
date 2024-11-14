@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 dotenv.config();
 const corsOptions = {
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000', 'https://web-socket-three.vercel.app/'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true 
@@ -19,21 +19,36 @@ app.use(cors(corsOptions));
 
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:3000',
+        origin: ['http://localhost:3000', 'https://web-socket-three.vercel.app/'],
         methods: ['GET', 'POST']
     }
 })
 
+const users = new Map<string, string>()
+
 io.on("connection", (socket: Socket) => {
     console.log("client connected: ", socket.id) //if it was connected
 
+    socket.on('register', (name: string) => {
+        console.log("name: ", name)
+        users.set(socket.id, name)
+
+        console.log(`User Registered: ${name} (${socket.id})`)
+        socket.broadcast.emit('user joined', `${name} has joined the chat.`)
+    })
+
     socket.on('chat message', (msg: string) => { //message from client
-        console.log("Message: ", msg)
-        io.emit('chat messsage', msg)
+        const senderName = users.get(socket.id) || 'Anonymous'
+        io.emit('chat message', { sender: senderName, text: msg })
     })
 
     socket.on('disconnect', ()=> { //if the client disconnect their connection
-        console.log("Client disconnected", socket.id)
+        const name = users.get(socket.id)
+        users.delete(socket.id)
+        if(name) {
+            io.emit('user left', `${name} has left the chat.`);
+            console.log(`User disconnected: ${name} (${socket.id})`);
+        }
     })
 })
 
