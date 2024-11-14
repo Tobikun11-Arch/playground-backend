@@ -4,6 +4,7 @@ import cors from 'cors';
 import http from 'http';
 import { Server, Socket } from 'socket.io';
 import express, { Request, Response } from 'express'
+import { VercelRequest, VercelResponse } from '@vercel/node';
 const app = express()
 const port = 5000
 const server = http.createServer(app);
@@ -84,6 +85,6 @@ app.get('/users/data', (req: Request, res: Response) => {
     return res.json({ users })
 })
 
-server.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+export default (req: VercelRequest, res: VercelResponse) => {
+    app(req, res);
+};
